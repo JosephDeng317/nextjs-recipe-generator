@@ -1,95 +1,151 @@
-import Image from "next/image";
-import styles from "./page.module.css";
+"use client";
 
-export default function Home() {
+// Import necessary libraries
+import React, { useState } from "react";
+import Head from "next/head";
+import { useRouter } from "next/navigation";
+import ThreeJSComponent from "./threejs.js";
+
+// The Page component
+export default function Page() {
+  const [loading, setLoading] = useState(false);
+  const [formVisible, setFormVisible] = useState(false);
+  const [ingredients, setIngredients] = useState([
+    { ingredient: "", quantity: "" },
+  ]);
+  const router = useRouter();
+
+  const showForm = () => setFormVisible(true);
+  const hideForm = () => setFormVisible(false);
+
+  const handleInputChange = (index, event) => {
+    const values = [...ingredients];
+    values[index][event.target.name] = event.target.value;
+    setIngredients(values);
+  };
+
+  const addMore = () => {
+    setIngredients([...ingredients, { ingredient: "", quantity: "" }]);
+  };
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    setLoading(true);
+
+    try {
+      const response = await fetch("/api/submit", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(ingredients),
+      });
+
+      if (!response.ok) {
+        throw new Error("Network response was not ok");
+      }
+
+      const data = await response.json();
+      const recipes = JSON.stringify(data.recipes);
+      // Redirect to the results page with the recipes as a query parameter
+      router.push(`/results?recipes=${encodeURIComponent(recipes)}`);
+    } catch (error) {
+      console.error("Error:", error);
+    }
+  };
+
   return (
-    <main className={styles.main}>
-      <div className={styles.description}>
-        <p>
-          Get started by editing&nbsp;
-          <code className={styles.code}>src/app/page.js</code>
-        </p>
+    <>
+      <Head>
+        <title>AI Recipe Generator</title>
+        <meta charSet="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link rel="stylesheet" href="/mediaqueries.css" />
+      </Head>
+
+      <div className="d-flex justify-content-center mb-5 mt-5">
+        {!loading && <h1>What's in your fridge?</h1>}
+        {loading && <h1 className="loading-icon">We're working on it...</h1>}
+      </div>
+      <div id="recipeContainer"></div>
+      <div id="dataContainer"></div>
+      {!formVisible && (
         <div>
-          <a
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{" "}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className={styles.vercelLogo}
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
+          <div className="d-flex justify-content-center">
+            <div id="showFormContainer" className="button-container">
+              <button
+                className="transparent-button"
+                id="showFormButton"
+                onClick={showForm}
+              >
+                <ThreeJSComponent />
+              </button>
+              <button
+                className="hover-icon transparent-button"
+                id="hoverIcon"
+                onClick={showForm}
+              >
+                <span className="material-symbols-outlined add-icon unselectable">
+                  data_saver_on
+                </span>
+              </button>
+            </div>
+          </div>
+          <div class="d-flex justify-content-center text-muted">
+            <p>Tip: Hover over the fridge!</p>
+          </div>
         </div>
-      </div>
+      )}
 
-      <div className={styles.center}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
-        />
-      </div>
-
-      <div className={styles.grid}>
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Docs <span>-&gt;</span>
-          </h2>
-          <p>Find in-depth information about Next.js features and API.</p>
-        </a>
-
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Learn <span>-&gt;</span>
-          </h2>
-          <p>Learn about Next.js in an interactive course with&nbsp;quizzes!</p>
-        </a>
-
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Templates <span>-&gt;</span>
-          </h2>
-          <p>Explore starter templates for Next.js.</p>
-        </a>
-
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Deploy <span>-&gt;</span>
-          </h2>
-          <p>
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
-      </div>
-    </main>
+      {formVisible && (
+        <div id="form" className="container">
+          <form
+            id="ingredientsForm"
+            // action="http://localhost:3000/api/submit-ingredients"
+            // method="POST"
+            onSubmit={handleSubmit}
+          >
+            <div className="d-flex justify-content-end">
+              <button
+                className="transparent-button m-0"
+                id="hideFormButton"
+                onClick={hideForm}
+                type="button"
+              >
+                <span className="material-symbols-outlined"> close </span>
+              </button>
+            </div>
+            {ingredients.map((input, index) => (
+              <div className="form-group" id="ingredientContainer" key={index}>
+                <label htmlFor={`ingredient-${index}`}>Ingredient</label>
+                <input
+                  type="text"
+                  name="ingredient"
+                  placeholder="Enter ingredient"
+                  value={input.ingredient}
+                  onChange={(e) => handleInputChange(index, e)}
+                  required
+                />
+                <label htmlFor={`quantity-${index}`}>Quantity</label>
+                <input
+                  type="text"
+                  name="quantity"
+                  placeholder="Enter quantity"
+                  value={input.quantity}
+                  onChange={(e) => handleInputChange(index, e)}
+                  required
+                />
+              </div>
+            ))}
+            <button type="button" className="add-more-button" onClick={addMore}>
+              Add More
+            </button>
+            <br />
+            <br />
+            <input type="submit" value="Submit" id="submitIngredients" />
+          </form>
+        </div>
+      )}
+    </>
   );
 }
