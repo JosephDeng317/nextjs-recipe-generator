@@ -35,7 +35,7 @@ export default function Results() {
 
         <div class="m-5">
           <div class="row">
-            <h1 class="m-3">We created these recipes!</h1>
+            <h1 class="m-3">Here's your recipes!</h1>
             {recipes.length > 0 ? (
               recipes.map((recipe, index) => (
                 <div key={index} className="col-xl-4 col-lg-6 mb-4">

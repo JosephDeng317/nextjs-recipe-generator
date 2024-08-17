@@ -64,8 +64,8 @@ export default function Page() {
       </Head>
 
       <div className="d-flex justify-content-center mb-5 mt-5">
-        {!loading && <h1>What's in your fridge?</h1>}
-        {loading && <h1 className="loading-icon">We're working on it...</h1>}
+        {!loading && <h1>I love making recipes, what's in your fridge?</h1>}
+        {loading && <h1 className="loading-icon">Working on it...</h1>}
       </div>
       <div id="recipeContainer"></div>
       <div id="dataContainer"></div>
